@@ -42,16 +42,24 @@ function sha256Hex(s) {
 }
 function vaultPath(id) { return path.join(DATA_DIR, id + '.json'); }
 
+// Cabeceras de seguridad (corregidas tras el escaneo OWASP ZAP del 11-oct-2026)
+const SEC_HEADERS = {
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Referrer-Policy': 'no-referrer',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  'Cache-Control': 'no-store'
+};
+
 function send(res, code, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(code, {
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(body),
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
-    'X-Content-Type-Options': 'nosniff',
-    'Strict-Transport-Security': 'max-age=31536000'
+    // Sin CORS abierto: la PWA es del mismo origen y la extension usa host_permissions.
+    ...SEC_HEADERS
   });
   res.end(body);
 }
@@ -181,7 +189,7 @@ async function handler(req, res) {
     if (!file.startsWith(PWA_DIR)) return send(res, 403, { error: 'Prohibido' }); // anti path-traversal
     if (fs.existsSync(file) && fs.statSync(file).isFile()) {
       const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml' };
-      res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
+      res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', ...SEC_HEADERS });
       return res.end(fs.readFileSync(file));
     }
   }
