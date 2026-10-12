@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#111113">
+<title>SecureVault</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ PANTALLA: BIENVENIDA ============ -->
+<section id="screen-welcome" class="screen">
+  <div class="center-card">
+    <div class="brand">
+      <div class="brand-mark">SV</div>
+      <h1>SecureVault</h1>
+      <p class="muted">Tus credenciales, cifradas en tu dispositivo.<br>El servidor nunca puede leerlas.</p>
+    </div>
+    <button class="btn primary" id="btn-go-create">Crear boveda nueva</button>
+    <button class="btn" id="btn-go-import">Ya tengo una seed de 24 palabras</button>
+  </div>
+</section>
+
+<!-- ============ PANTALLA: CREAR (mostrar seed) ============ -->
+<section id="screen-create" class="screen hidden">
+  <div class="center-card wide">
+    <h2>Tu seed phrase</h2>
+    <p class="muted">Estas 24 palabras son la unica llave de tu boveda. Escribelas en papel, en orden.
+    Con ellas puedes abrir tus contrasenas en cualquier dispositivo. <strong>Si las pierdes, no hay recuperacion posible.</strong></p>
+    <ol id="seed-grid" class="seed-grid"></ol>
+    <div class="row">
+      <button class="btn" id="btn-copy-seed">Copiar</button>
+      <button class="btn" id="btn-regen-seed">Generar otra</button>
+    </div>
+    <label class="check"><input type="checkbox" id="chk-seed-saved"> Ya escribi mis 24 palabras en un lugar seguro</label>
+    <button class="btn primary" id="btn-seed-continue" disabled>Continuar</button>
+    <button class="btn ghost" data-nav="screen-welcome">Volver</button>
+  </div>
+</section>
+
+<!-- ============ PANTALLA: VERIFICAR SEED ============ -->
+<section id="screen-verify" class="screen hidden">
+  <div class="center-card">
+    <h2>Verifica tu copia</h2>
+    <p class="muted" id="verify-prompt">Escribe las palabras solicitadas.</p>
+    <div id="verify-fields"></div>
+    <p class="error hidden" id="verify-error">Alguna palabra no coincide. Revisa tu copia en papel.</p>
+    <button class="btn primary" id="btn-verify">Verificar</button>
+    <button class="btn ghost" data-nav="screen-create">Volver a ver la seed</button>
+  </div>
+</section>
+
+<!-- ============ PANTALLA: IMPORTAR SEED ============ -->
+<section id="screen-import" class="screen hidden">
+  <div class="center-card wide">
+    <h2>Abrir con seed</h2>
+    <p class="muted">Escribe tus 24 palabras separadas por espacios, igual que en una wallet.</p>
+    <textarea id="import-seed" rows="4" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="palabra1 palabra2 palabra3 …"></textarea>
+    <p class="error hidden" id="import-error"></p>
+    <button class="btn primary" id="btn-import">Abrir boveda</button>
+    <button class="btn ghost" data-nav="screen-welcome">Volver</button>
+  </div>
+</section>
+
+<!-- ============ PANTALLA: CONTRASENA LOCAL ============ -->
+<section id="screen-password" class="screen hidden">
+  <div class="center-card">
+    <h2>Contrasena local</h2>
+    <p class="muted">Para no escribir la seed cada vez en este dispositivo, crea una contrasena de acceso rapido. Protege la seed con PBKDF2 (150.000 iteraciones).</p>
+    <input type="password" id="pw-new" placeholder="Contrasena local (min. 8 caracteres)" autocomplete="new-password">
+    <input type="password" id="pw-confirm" placeholder="Confirmar contrasena" autocomplete="new-password">
+    <p class="error hidden" id="pw-error"></p>
+    <button class="btn primary" id="btn-set-password">Guardar y entrar</button>
+  </div>
+</section>
+
+<!-- ============ PANTALLA: DESBLOQUEO ============ -->
+<section id="screen-unlock" class="screen hidden">
+  <div class="center-card">
+    <div class="brand small">
+      <div class="brand-mark">SV</div>
+      <h1>SecureVault</h1>
+    </div>
+    <p class="muted">Boveda bloqueada</p>
+    <input type="password" id="unlock-password" placeholder="Contrasena local" autocomplete="current-password">
+    <p class="error hidden" id="unlock-error"></p>
+    <button class="btn primary" id="btn-unlock">Desbloquear</button>
+    <button class="btn ghost" id="btn-unlock-seed">Usar la seed en su lugar</button>
+    <button class="btn ghost danger-text" id="btn-forget-device">Olvidar este dispositivo</button>
+  </div>
+</section>
+
+<!-- ============ PANTALLA PRINCIPAL ============ -->
+<section id="screen-main" class="screen hidden">
+  <header class="topbar">
+    <div class="brand-inline"><span class="brand-mark sm">SV</span> SecureVault</div>
+    <div class="topbar-right">
+      <span id="sync-status" class="sync" title="Estado de sincronizacion">—</span>
+      <button class="icon-btn" id="btn-menu" title="Menu" aria-label="Menu"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg></button>
+      <button class="icon-btn" id="btn-lock" title="Bloquear ahora" aria-label="Bloquear"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="Buscar credencial…">
+    <button class="btn primary compact" id="btn-add">+ Nueva</button>
+  </div>
+
+  <ul id="entry-list" class="entry-list"></ul>
+  <p id="empty-state" class="muted center hidden">No hay credenciales todavia. Crea la primera con "+ Nueva".</p>
+
+  <!-- menu lateral -->
+  <div id="drawer" class="drawer hidden">
+    <h3>Opciones</h3>
+    <button class="btn" id="btn-sync-now">Sincronizar ahora</button>
+    <button class="btn" id="btn-share">Compartir acceso (QR)</button>
+    <button class="btn" id="btn-export">Exportar backup (.svault)</button>
+    <button class="btn" id="btn-import-backup">Importar backup (.svault)</button>
+    <button class="btn" id="btn-get-extension">Extension de Chrome (autofill)</button>
+    <button class="btn" id="btn-install-tutorial">Agregar a pantalla de inicio</button>
+    <input type="file" id="file-import" accept=".svault,application/json" class="hidden">
+    <button class="btn" id="btn-show-server">Servidor: <span id="server-label"></span></button>
+    <button class="btn danger" id="btn-delete-vault">Eliminar boveda definitivamente</button>
+    <button class="btn ghost" id="btn-close-drawer">Cerrar</button>
+  </div>
+</section>
+
+<!-- ============ MODAL: ENTRADA ============ -->
+<div id="modal-entry" class="modal hidden">
+  <div class="modal-card">
+    <h3 id="entry-modal-title">Nueva credencial</h3>
+    <input type="text" id="f-name" placeholder="Nombre (ej: Portal proveedor)">
+    <input type="text" id="f-url" placeholder="URL (ej: https://proveedor.com)">
+    <input type="text" id="f-username" placeholder="Usuario o correo" autocomplete="off">
+    <div class="pw-row">
+      <input type="password" id="f-password" placeholder="Contrasena" autocomplete="new-password">
+      <button class="icon-btn" id="btn-toggle-pw" title="Mostrar contrasena" aria-label="Mostrar"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg></button>
+      <button class="icon-btn" id="btn-gen-pw" title="Generar contrasena fuerte" aria-label="Generar"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v2.6h-2.6"/></svg></button>
+    </div>
+    <textarea id="f-notes" rows="2" placeholder="Notas (opcional)"></textarea>
+    <div class="row">
+      <button class="btn primary" id="btn-save-entry">Guardar</button>
+      <button class="btn danger hidden" id="btn-delete-entry">Eliminar</button>
+      <button class="btn ghost" id="btn-cancel-entry">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: CONFIRMAR CON SEED ============ -->
+<div id="modal-confirm-seed" class="modal hidden">
+  <div class="modal-card">
+    <h3>Confirmacion con seed</h3>
+    <p class="muted">Para eliminar la boveda definitivamente escribe tus 24 palabras. Esta accion no tiene recuperacion.</p>
+    <textarea id="confirm-seed-input" rows="3" autocomplete="off" spellcheck="false"></textarea>
+    <p class="error hidden" id="confirm-seed-error"></p>
+    <div class="row">
+      <button class="btn danger" id="btn-confirm-delete">Eliminar todo</button>
+      <button class="btn ghost" id="btn-cancel-delete">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: COMPARTIR ACCESO ============ -->
+<div id="modal-share" class="modal hidden">
+  <div class="modal-card">
+    <h3>Compartir acceso</h3>
+    <p class="muted">Escanea este codigo con la camara del celular (misma red WiFi). Se abre SecureVault directo, sin escribir nada.</p>
+    <div id="qr-box" class="qr-box"></div>
+    <p class="muted center" id="share-link" style="font-family:var(--mono); font-size:12px; user-select:all;"></p>
+    <button class="btn ghost" id="btn-close-share">Cerrar</button>
+  </div>
+</div>
+
+<!-- ============ MODAL: EXTENSION ============ -->
+<div id="modal-extension" class="modal hidden">
+  <div class="modal-card">
+    <h3>Extension de Chrome</h3>
+    <p class="muted">Rellena usuarios y contrasenas con un clic en las paginas de inicio de sesion. Solo para computador (Chrome, Edge o Brave).</p>
+    <button class="btn primary" id="btn-download-ext">Descargar extension (.zip)</button>
+    <div class="steps">
+      <p><span class="stepn">1</span> Descomprime el archivo descargado.</p>
+      <p><span class="stepn">2</span> En el navegador abre <code>chrome://extensions</code></p>
+      <p><span class="stepn">3</span> Activa el "Modo de desarrollador" (arriba a la derecha).</p>
+      <p><span class="stepn">4</span> Toca "Cargar descomprimida" y elige la carpeta descomprimida.</p>
+      <p><span class="stepn">5</span> Abre el icono SV, escribe tu seed y crea una contrasena local.</p>
+    </div>
+    <button class="btn ghost" id="btn-close-extension">Cerrar</button>
+  </div>
+</div>
+
+<!-- ============ BANNER + MODAL: INSTALAR EN CELULAR ============ -->
+<div id="install-banner" class="install-banner hidden">
+  <span>Instala SecureVault en tu pantalla de inicio para abrirla como una app</span>
+  <div class="install-actions">
+    <button class="btn primary compact" id="btn-install-how">Ver como</button>
+    <button class="icon-btn" id="btn-install-close" aria-label="Cerrar">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="modal-install" class="modal hidden">
+  <div class="modal-card">
+    <h3>Instalar en tu celular</h3>
+    <div class="row" id="install-tabs">
+      <button class="btn compact" id="tab-ios">iPhone / iPad</button>
+      <button class="btn compact" id="tab-android">Android</button>
+    </div>
+    <div id="install-ios" class="steps hidden">
+      <p class="muted">En iPhone o iPad (Safari):</p>
+      <p><span class="stepn">1</span> Toca el boton Compartir <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" style="vertical-align:-2px"><path d="M8 10V2M5 4.5L8 1.7l3 2.8"/><path d="M3 7v6.5h10V7"/></svg> (abajo en el centro).</p>
+      <p><span class="stepn">2</span> Desliza hacia abajo y toca <strong>"Anadir a pantalla de inicio"</strong>.</p>
+      <p><span class="stepn">3</span> Toca <strong>"Anadir"</strong> arriba a la derecha.</p>
+    </div>
+    <div id="install-android" class="steps hidden">
+      <p class="muted">En Android (Chrome):</p>
+      <p><span class="stepn">1</span> Toca el menu <strong>⋮</strong> (arriba a la derecha).</p>
+      <p><span class="stepn">2</span> Toca <strong>"Anadir a pantalla de inicio"</strong> o <strong>"Instalar aplicacion"</strong>.</p>
+      <p><span class="stepn">3</span> Confirma con <strong>"Instalar"</strong> o <strong>"Anadir"</strong>.</p>
+    </div>
+    <p class="muted">Quedara con su propio icono, como cualquier app, y funciona sin internet.</p>
+    <button class="btn ghost" id="btn-close-install">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="qr.js"></script>
+<script src="wordlist.js"></script>
+<script src="crypto.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

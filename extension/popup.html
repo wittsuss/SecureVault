@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+:root { --bg:#111113; --panel:#1b1b1e; --panel2:#232327; --border:#333338; --text:#ececee; --muted:#9a9aa1; --mono:"Consolas",monospace; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { width:340px; background:var(--bg); color:var(--text); font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:14px; }
+.wrap { padding:14px; display:flex; flex-direction:column; gap:9px; }
+h1 { font-size:15px; display:flex; align-items:center; gap:8px; }
+.mark { width:24px; height:24px; border:1.5px solid #fff; border-radius:6px; font:700 10px var(--mono); display:inline-flex; align-items:center; justify-content:center; }
+.muted { color:var(--muted); font-size:12px; }
+input, textarea { width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); padding:9px 11px; border-radius:8px; font-size:13.5px; }
+textarea { font-family:var(--mono); resize:vertical; }
+button { background:var(--panel); border:1px solid var(--border); color:var(--text); padding:9px 12px; border-radius:8px; cursor:pointer; font-size:13.5px; width:100%; }
+button:hover { background:var(--panel2); }
+button.primary { background:#fff; color:#111; border-color:#fff; font-weight:600; }
+button.primary:hover { background:#d8d8dc; }
+.hidden { display:none !important; }
+.error { background:#2a2a2e; border-left:3px solid #fff; padding:6px 9px; border-radius:6px; font-size:12px; }
+.domain { font-family:var(--mono); font-size:11px; color:var(--muted); border:1px solid var(--border); border-radius:14px; padding:2px 9px; align-self:flex-start; }
+ul { list-style:none; display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; }
+li.entry { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:8px 10px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+li.entry .nm { font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+li.entry .us { font:11px var(--mono); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+li.entry .info { min-width:0; flex:1; }
+.mini { width:auto; padding:6px 9px; font-size:12px; flex-shrink:0; }
+.rowbtn { display:flex; gap:6px; }
+.foot { display:flex; gap:6px; }
+.foot button { font-size:12px; padding:7px; }
+.sec { border-top:1px solid var(--border); padding-top:9px; margin-top:2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="mark">SV</span> SecureVault</h1>
+
+  <!-- setup: no hay seed en este navegador -->
+  <div id="v-setup" class="hidden">
+    <p class="muted">Vincula este navegador escribiendo tu seed de 24 palabras (la misma de tu PWA).</p>
+    <textarea id="s-seed" rows="3" placeholder="palabra1 palabra2 …" spellcheck="false"></textarea>
+    <input type="password" id="s-pw" placeholder="Crear contrasena local (min. 8)" style="margin-top:8px">
+    <p class="error hidden" id="s-err" style="margin-top:8px"></p>
+    <button class="primary" id="s-go" style="margin-top:8px">Vincular navegador</button>
+  </div>
+
+  <!-- bloqueado -->
+  <div id="v-lock" class="hidden">
+    <p class="muted">Boveda bloqueada</p>
+    <input type="password" id="l-pw" placeholder="Contrasena local">
+    <p class="error hidden" id="l-err" style="margin-top:8px"></p>
+    <button class="primary" id="l-go" style="margin-top:8px">Desbloquear</button>
+    <button id="l-reset" style="margin-top:6px; font-size:12px">Reconfigurar con otra seed</button>
+  </div>
+
+  <!-- desbloqueado -->
+  <div id="v-main" class="hidden" style="display:flex; flex-direction:column; gap:9px">
+    <span class="domain" id="m-domain">—</span>
+    <ul id="m-list"></ul>
+    <p class="muted hidden" id="m-empty">No hay credenciales guardadas para este sitio. Agregala desde la PWA y sincroniza.</p>
+    <div class="foot sec">
+      <button id="m-sync">Sincronizar</button>
+      <button id="m-lock">Bloquear</button>
+    </div>
+  </div>
+</div>
+<script src="wordlist.js"></script>
+<script src="crypto.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

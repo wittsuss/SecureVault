@@ -1,0 +1,184 @@
+/* SecureVault - estilo sobrio en blanco, negro y grises.
+   La firma visual: la cuadricula numerada de 24 palabras, como una hardware wallet. */
+
+:root {
+  --bg: #111113;
+  --panel: #1b1b1e;
+  --panel-2: #232327;
+  --border: #333338;
+  --text: #ececee;
+  --muted: #9a9aa1;
+  --white: #ffffff;
+  --danger: #d9d9de; /* peligro se marca con contorno, no con color */
+  --mono: "SF Mono", "Cascadia Mono", "Consolas", monospace;
+  --sans: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.hidden { display: none !important; }
+.center { text-align: center; }
+.muted { color: var(--muted); font-size: 13.5px; }
+.error { color: var(--white); background: #2a2a2e; border: 1px solid var(--border); border-left: 3px solid var(--white); padding: 8px 10px; border-radius: 6px; font-size: 13px; margin: 8px 0; }
+
+/* -------- pantallas centradas -------- */
+.screen { min-height: 100vh; }
+.center-card {
+  max-width: 420px; margin: 0 auto; padding: 48px 20px;
+  display: flex; flex-direction: column; gap: 12px; min-height: 100vh; justify-content: center;
+}
+.center-card.wide { max-width: 560px; }
+
+.brand { text-align: center; margin-bottom: 18px; }
+.brand.small { margin-bottom: 4px; }
+.brand-mark {
+  width: 58px; height: 58px; margin: 0 auto 12px;
+  border: 2px solid var(--white); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; font-size: 20px; letter-spacing: 1px;
+}
+.brand-mark.sm { width: 30px; height: 30px; font-size: 12px; border-width: 1.5px; border-radius: 8px; display: inline-flex; margin: 0 8px 0 0; vertical-align: middle; }
+h1 { font-size: 26px; font-weight: 650; letter-spacing: -0.3px; }
+h2 { font-size: 21px; font-weight: 650; }
+h3 { font-size: 17px; font-weight: 650; }
+
+/* -------- botones e inputs -------- */
+.btn {
+  appearance: none; border: 1px solid var(--border); background: var(--panel);
+  color: var(--text); padding: 12px 16px; border-radius: 9px; font-size: 15px;
+  cursor: pointer; width: 100%; text-align: center; transition: background .12s, border-color .12s;
+}
+.btn:hover { background: var(--panel-2); border-color: #4a4a50; }
+.btn.primary { background: var(--white); color: #111; border-color: var(--white); font-weight: 600; }
+.btn.primary:hover { background: #d8d8dc; }
+.btn.primary:disabled { opacity: .35; cursor: not-allowed; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--text); background: var(--panel); }
+.btn.danger { background: transparent; border: 1px dashed var(--muted); color: var(--text); }
+.btn.danger:hover { border-color: var(--white); }
+.btn.compact { width: auto; padding: 10px 14px; white-space: nowrap; }
+.danger-text { color: var(--muted); font-size: 13px; }
+
+input[type=text], input[type=password], input[type=search], textarea {
+  width: 100%; background: var(--panel); border: 1px solid var(--border);
+  color: var(--text); padding: 12px 14px; border-radius: 9px; font-size: 15px;
+  font-family: var(--sans);
+}
+textarea { font-family: var(--mono); font-size: 14px; resize: vertical; }
+input:focus, textarea:focus, .btn:focus-visible { outline: 2px solid #6a6a72; outline-offset: 1px; }
+#import-seed, #confirm-seed-input { text-transform: lowercase; }
+
+.row { display: flex; gap: 10px; }
+.row .btn { flex: 1; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); cursor: pointer; padding: 4px 0; }
+.check input { width: 17px; height: 17px; accent-color: var(--white); }
+
+/* -------- firma: cuadricula de seed -------- */
+.seed-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  list-style: none; counter-reset: w; margin: 8px 0;
+}
+.seed-grid li {
+  counter-increment: w;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 10px 9px 34px; position: relative;
+  font-family: var(--mono); font-size: 14px; letter-spacing: .3px;
+  user-select: all;
+}
+.seed-grid li::before {
+  content: counter(w, decimal-leading-zero);
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--muted);
+}
+@media (max-width: 480px) { .seed-grid { grid-template-columns: repeat(2, 1fr); } }
+
+#verify-fields { display: flex; flex-direction: column; gap: 8px; }
+#verify-fields label { font-size: 13px; color: var(--muted); }
+
+/* -------- pantalla principal -------- */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--bg); z-index: 5;
+}
+.brand-inline { font-weight: 650; font-size: 15px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.sync { font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--border); padding: 3px 8px; border-radius: 20px; }
+.sync.ok { color: var(--text); border-color: #55555c; }
+.icon-btn {
+  background: var(--panel); border: 1px solid var(--border); color: var(--text);
+  width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 15px;
+}
+.icon-btn:hover { background: var(--panel-2); }
+
+.toolbar { display: flex; gap: 10px; padding: 14px 16px; max-width: 760px; margin: 0 auto; }
+.entry-list { list-style: none; max-width: 760px; margin: 0 auto; padding: 0 16px 90px; display: flex; flex-direction: column; gap: 8px; }
+.entry {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  cursor: pointer; transition: border-color .12s;
+}
+.entry:hover { border-color: #4a4a50; }
+.entry .info { min-width: 0; }
+.entry .name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry .sub { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry .actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* -------- drawer y modales -------- */
+.drawer {
+  position: fixed; top: 0; right: 0; height: 100vh; width: min(320px, 88vw);
+  background: var(--panel); border-left: 1px solid var(--border);
+  padding: 22px 18px; display: flex; flex-direction: column; gap: 10px; z-index: 20;
+}
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.62);
+  display: flex; align-items: center; justify-content: center; z-index: 30; padding: 16px;
+}
+.modal-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+  padding: 22px; width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 10px;
+}
+.pw-row { display: flex; gap: 8px; }
+.pw-row input { flex: 1; }
+
+.toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  background: var(--white); color: #111; font-weight: 600; font-size: 14px;
+  padding: 10px 18px; border-radius: 24px; z-index: 40;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: pop .18s ease-out; }
+  @keyframes pop { from { transform: translateX(-50%) translateY(8px); opacity: 0; } }
+}
+
+/* -------- compartir acceso (QR) -------- */
+.qr-box { background: #fff; border-radius: 12px; padding: 14px; display: flex; justify-content: center; margin: 4px auto; }
+.qr-box svg { display: block; width: min(240px, 70vw); height: auto; }
+
+/* -------- iconos SVG -------- */
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn svg { display: block; }
+
+/* -------- pasos de instalacion -------- */
+.steps { display: flex; flex-direction: column; gap: 8px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.steps p { font-size: 13.5px; color: var(--text); }
+.steps code { font-family: var(--mono); background: var(--bg); padding: 2px 6px; border-radius: 5px; font-size: 12.5px; }
+.stepn { display: inline-flex; width: 18px; height: 18px; border: 1px solid var(--muted); border-radius: 50%; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); margin-right: 7px; }
+
+/* -------- banner de instalacion movil -------- */
+.install-banner {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 25;
+  background: var(--panel); border-top: 1px solid var(--border);
+  padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-size: 13.5px;
+}
+.install-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }

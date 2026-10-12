@@ -1,0 +1,21 @@
+COMO INSTALAR LA EXTENSION DE CHROME (4 pasos, 1 minuto)
+
+1. Abre Chrome y escribe en la barra de direcciones:
+   chrome://extensions
+
+2. Activa el interruptor "Modo de desarrollador"
+   (esquina superior derecha).
+
+3. Haz clic en el boton "Cargar descomprimida" y
+   selecciona esta carpeta ("extension").
+
+4. Haz clic en el icono SV (arriba a la derecha en Chrome),
+   escribe tus 24 palabras y crea una contrasena local.
+
+USO: entra a cualquier pagina de inicio de sesion, abre el
+icono SV y toca "Rellenar". Usuario y contrasena se llenan
+solos.
+
+NOTA: SecureVault debe estar iniciado (la ventana negra
+abierta) y debes haber aceptado el certificado en el
+navegador al menos una vez (paso 2 del LEEME).

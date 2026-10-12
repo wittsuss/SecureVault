@@ -1,0 +1,10 @@
+node_modules/
+cert/
+*.pem
+*.key
+bovedas/*
+!bovedas/.gitkeep
+runtime/
+*.svault
+*.log
+.DS_Store

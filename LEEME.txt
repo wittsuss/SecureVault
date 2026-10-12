@@ -1,0 +1,61 @@
+================================================================
+ SECUREVAULT - Gestor de contrasenas Zero-Knowledge
+================================================================
+
+ COMO EMPEZAR (solo 2 pasos):
+
+ 1. Haz doble clic en:  INICIAR-SecureVault.bat
+    (se abre una ventana negra: dejala abierta, es el programa)
+
+ 2. Se abre solo tu navegador. La primera vez Chrome muestra
+    "La conexion no es privada": haz clic en "Configuracion
+    avanzada" y luego en "Continuar a localhost". Es normal:
+    el programa corre en TU computador, no en internet.
+
+ Eso es todo. Ya puedes crear tu boveda.
+
+----------------------------------------------------------------
+ TU SEED DE 24 PALABRAS
+
+ Al crear la boveda, el programa te muestra 24 palabras.
+ ESCRIBELAS EN PAPEL, EN ORDEN, Y GUARDALAS BIEN.
+
+ - Son la UNICA llave de tus contrasenas.
+ - Con ellas abres tu boveda en cualquier computador o celular.
+ - Si las pierdes, NADIE puede recuperar tus contrasenas.
+   Ni el programa, ni un tecnico. Nadie. Asi de segura es.
+
+----------------------------------------------------------------
+ USARLO EN EL CELULAR U OTRO COMPUTADOR (misma red WiFi)
+
+ La forma facil (codigo QR):
+
+ 1. En el computador, dentro de SecureVault, abre el
+    menu (boton =) y toca "Compartir acceso (QR)".
+ 2. Escanea el codigo con la camara del celular.
+    Se abre SecureVault directo.
+ 3. Acepta la advertencia del navegador (igual que antes),
+    elige "Ya tengo una seed" y escribe tus 24 palabras.
+ 4. Opcional: en Chrome del celular, menu > "Agregar a
+    pantalla de inicio" para tenerla como una app.
+
+ Alternativa sin QR: la ventana negra del programa muestra
+ el link exacto para el celular al arrancar (por ejemplo
+ https://192.168.20.30:8443). Escribelo en el navegador
+ del celular tal cual.
+
+----------------------------------------------------------------
+ AUTOFILL EN CHROME (opcional, para llenar logins solo)
+
+ Mira el archivo:  extension\COMO-INSTALAR-EXTENSION.txt
+
+----------------------------------------------------------------
+ TUS DATOS
+
+ - Carpeta "bovedas": aqui viven tus contrasenas, SIEMPRE
+   cifradas. Puedes abrir esos archivos y comprobar que son
+   ilegibles. Respaldala si quieres.
+ - Este programa no necesita internet ni envia nada afuera.
+ - No requiere instalacion ni permisos de administrador.
+
+================================================================
