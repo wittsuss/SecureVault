@@ -79,8 +79,8 @@ async function openLikeApp(localVault, keys) {
   ], deleted: {} };
   await req('PUT', '/api/vault/' + keys.vaultId, await C.encryptVault(pcVault, keys), keys.authToken);
 
-  // 2) se elimina la carpeta bovedas (el servidor pierde todo)
-  await req('DELETE', '/api/vault/' + keys.vaultId, null, keys.authToken);
+  // 2) se elimina la carpeta bovedas (el servidor pierde todo, sin lapida)
+  require('fs').unlinkSync(require('path').join(__dirname, '..', '..', 'bovedas', keys.vaultId + '.json'));
   assert((await req('GET', '/api/vault/' + keys.vaultId)).status === 404, 'servidor vacio (carpeta eliminada)');
 
   // 3) el CELULAR (tiene 1 credencial propia en su cache) entra primero

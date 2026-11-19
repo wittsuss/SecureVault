@@ -84,6 +84,23 @@ async function api(method, path, body, token) {
   return { status: res.status, data };
 }
 
+// La boveda fue eliminada intencionalmente en el servidor (410 Gone):
+// se borra la copia local en vez de volver a subirla.
+function retireVault(deletedAt) {
+  store.wrapped = null; store.cache = null;
+  session = null;
+  clearTimeout(lockTimer);
+  const when = deletedAt ? ' el ' + new Date(deletedAt).toLocaleString() : '';
+  alert('Esta boveda fue eliminada por la propietaria' + when + '. Se borro la copia cifrada de este dispositivo. Pida la nueva seed para abrir la boveda vigente.');
+  show('screen-welcome');
+}
+
+// Huella corta de la boveda (primeros 8 caracteres del vaultId) para verificar la rotacion
+function vaultFingerprint(keys) {
+  const h = keys.vaultId.slice(0, 8).toUpperCase();
+  return h.slice(0, 4) + '-' + h.slice(4);
+}
+
 function setSync(state) {
   const el = $('sync-status');
   el.classList.toggle('ok', state === 'ok');
@@ -92,11 +109,13 @@ function setSync(state) {
 
 // Sube la boveda actual cifrada. Si no hay red, deja el cache marcado como pendiente.
 async function pushVault() {
+  if (!session) return false;
   const payload = await C.encryptVault(session.vault, session.keys);
   store.cache = { vaultId: session.keys.vaultId, payload, pending: true };
   try {
     const r = await api('PUT', '/api/vault/' + session.keys.vaultId, payload, session.keys.authToken);
     if (r.status === 200) { store.cache = { vaultId: session.keys.vaultId, payload, pending: false }; setSync('ok'); return true; }
+    if (r.status === 410) { retireVault(r.data.deletedAt); return false; }
     if (r.status === 409) {
       // hay version mas reciente en el servidor: traerla, fusionar por id y reintentar
       await pullVault(true);
@@ -108,11 +127,13 @@ async function pushVault() {
 
 // Descarga la boveda del servidor si es mas nueva que la copia local.
 async function pullVault(merge = false) {
+  if (!session) return;
   try {
     const r = await api('GET', '/api/vault/' + session.keys.vaultId);
     if (r.status === 404) { setSync('ok'); return; }
+    if (r.status === 410) { retireVault(r.data.deletedAt); return; }
     if (r.status !== 200) { setSync('pending'); return; }
-    const remote = C.normalizeVault(await C.decryptVault(r.data.payload, keys));
+    const remote = C.normalizeVault(await C.decryptVault(r.data.payload, session.keys));
     session.vault = merge ? C.mergeVaults(session.vault, remote) : remote;
     store.cache = { vaultId: session.keys.vaultId, payload: r.data.payload, pending: false };
     setSync('ok');
@@ -147,6 +168,11 @@ async function openSession(mnemonic) {
         store.cache = { vaultId: keys.vaultId, payload: r.data.payload, pending: false };
         setSync('ok');
       }
+    } else if (r.status === 410) {
+      // la propietaria elimino esta boveda (p. ej. tras rotar la seed):
+      // NO se vuelve a subir; se borra la copia local de este dispositivo
+      retireVault(r.data.deletedAt);
+      return;
     } else if (r.status === 404) {
       // el servidor no tiene la boveda (p. ej. se reinstalo el programa):
       // si este dispositivo tiene credenciales, se restauran automaticamente
@@ -155,6 +181,9 @@ async function openSession(mnemonic) {
     }
   } catch (e) { setSync('offline'); }
 
+  if (!session) return;
+  const fp = document.getElementById('vault-fp');
+  if (fp) fp.textContent = vaultFingerprint(keys);
   renderEntries();
   show('screen-main');
   armLockTimer();
@@ -396,7 +425,7 @@ $('btn-menu').addEventListener('click', () => {
 });
 $('btn-close-drawer').addEventListener('click', () => $('drawer').classList.add('hidden'));
 $('btn-lock').addEventListener('click', lock);
-$('btn-sync-now').addEventListener('click', async () => { await pullVault(true); await pushVault(); renderEntries(); toast('Sincronizacion completa'); });
+$('btn-sync-now').addEventListener('click', async () => { await pullVault(true); if (!session) return; await pushVault(); if (!session) return; renderEntries(); toast('Sincronizacion completa'); });
 
 // compartir acceso con codigo QR: la camara del celular abre el link directo
 $('btn-share').addEventListener('click', async () => {

@@ -81,3 +81,12 @@ No existe mecanismo de recuperación si se pierde la seed. Es intencional: cualq
 ## Licencia
 
 MIT.
+
+## Retiro de bóvedas (lápidas) — noviembre 2026
+
+- `DELETE /api/vault/:id` sobrescribe y borra el archivo cifrado y deja `bovedas/<id>.deleted.json` con `{ authHash, deletedAt }`.
+- Mientras exista la lápida, GET, PUT y DELETE de ese id responden **410 Gone**, incluso con el token correcto.
+- La PWA y la extensión tratan el 410 como bóveda retirada: avisan y borran `sv_cache` y `sv_wrapped` del dispositivo.
+- Reinstalación (carpeta `bovedas` vacía, sin lápida) responde **404**: un dispositivo con copia local la vuelve a subir.
+- La PWA muestra en el menú la "Huella de la bóveda" (primeros 8 caracteres del vaultId) para verificar una rotación de seed.
+- Prueba: `node desarrollo/tests/test-retiro.js` (18 casos).

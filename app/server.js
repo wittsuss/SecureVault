@@ -1,6 +1,6 @@
 /*
  * SecureVault - Servidor Zero-Knowledge
- * Node.js v20 LTS, sin dependencias externas (solo modulos nativos).
+ * Node.js 22 LTS, sin dependencias externas (solo modulos nativos).
  *
  * El servidor es un "repositorio ciego":
  *   - Almacena blobs cifrados indexados por vaultId (derivado de la seed).
@@ -10,9 +10,16 @@
  *
  * API:
  *   GET    /api/health              -> estado del servidor
- *   GET    /api/vault/:vaultId      -> blob cifrado (o 404)
- *   PUT    /api/vault/:vaultId      -> guarda blob (header X-Auth-Token)
- *   DELETE /api/vault/:vaultId      -> elimina boveda (header X-Auth-Token)
+ *   GET    /api/vault/:vaultId      -> blob cifrado (404 si no existe, 410 si fue eliminada)
+ *   PUT    /api/vault/:vaultId      -> guarda blob (header X-Auth-Token; 410 si fue eliminada)
+ *   DELETE /api/vault/:vaultId      -> elimina boveda y deja una lapida (header X-Auth-Token)
+ *
+ * Diferencia entre reinstalacion y eliminacion intencional:
+ *   - Reinstalacion: la carpeta bovedas/ queda vacia -> 404 -> el dispositivo
+ *     que tenga copia local la vuelve a subir (restauracion).
+ *   - Eliminacion intencional: queda bovedas/<vaultId>.deleted.json (lapida)
+ *     -> 410 Gone -> el servidor nunca acepta de nuevo esa boveda y los
+ *     clientes borran su copia local en lugar de volver a subirla.
  *
  * Ejecutar:  node server.js   (HTTPS en puerto 8443)
  * Requiere cert/key.pem y cert/cert.pem (ver README para generarlos).
@@ -41,6 +48,12 @@ function sha256Hex(s) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
 function vaultPath(id) { return path.join(DATA_DIR, id + '.json'); }
+// lapida de una boveda eliminada intencionalmente (solo hash del token y fecha)
+function tombPath(id) { return path.join(DATA_DIR, id + '.deleted.json'); }
+function tombstone(id) {
+  const t = tombPath(id);
+  return fs.existsSync(t) ? JSON.parse(fs.readFileSync(t, 'utf8')) : null;
+}
 
 // Cabeceras de seguridad (corregidas tras el escaneo OWASP ZAP del 11-oct-2026)
 const SEC_HEADERS = {
@@ -125,6 +138,12 @@ async function handler(req, res) {
     const id = parts[2];
     if (!VAULT_ID_RE.test(id)) return send(res, 400, { error: 'vaultId invalido' });
     const file = vaultPath(id);
+    const tomb = tombstone(id);
+    // boveda retirada: no se entrega, no se acepta de nuevo y no se vuelve a borrar
+    if (tomb) {
+      log('410 boveda retirada', req.method, id.slice(0, 8) + '…');
+      return send(res, 410, { error: 'Boveda eliminada intencionalmente', deletedAt: tomb.deletedAt });
+    }
 
     // --- lectura: el blob cifrado es ilegible sin la seed; entregarlo no revela nada ---
     if (req.method === 'GET') {
@@ -175,8 +194,10 @@ async function handler(req, res) {
       const size = fs.statSync(file).size;
       fs.writeFileSync(file, crypto.randomBytes(size));
       fs.unlinkSync(file);
-      log('DELETE vault', id.slice(0, 8) + '…');
-      return send(res, 200, { deleted: true });
+      const deletedAt = Date.now();
+      fs.writeFileSync(tombPath(id), JSON.stringify({ authHash: stored.authHash, deletedAt }));
+      log('DELETE vault', id.slice(0, 8) + '…', '(lapida registrada)');
+      return send(res, 200, { deleted: true, deletedAt });
     }
   }
 

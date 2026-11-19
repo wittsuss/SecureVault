@@ -134,7 +134,7 @@ function assert(cond, name) {
   const delOk = await req('DELETE', '/api/vault/' + keysA.vaultId, null, { 'X-Auth-Token': keysA.authToken });
   assert(delOk.status === 200 && delOk.body.deleted, 'dueno de la seed elimina la boveda (200)');
   const gone = await req('GET', '/api/vault/' + keysA.vaultId);
-  assert(gone.status === 404, 'la boveda ya no existe (404)');
+  assert(gone.status === 410, 'la boveda queda retirada (410) y no se puede volver a subir');
 
   console.log('\nResultado: ' + passed + ' pruebas OK, ' + failed + ' fallos\n');
   process.exit(failed ? 1 : 0);

@@ -37,6 +37,14 @@ const storage = {
 async function pull(keys) {
   try {
     const res = await fetch(SERVER + '/api/vault/' + keys.vaultId);
+    if (res.status === 410) {
+      // boveda eliminada intencionalmente: se borra la configuracion de este navegador
+      await storage.clear(); await storage.sClear();
+      session = null;
+      alert('Esta boveda fue eliminada por la propietaria. Se borro la copia de este navegador.');
+      view('v-setup');
+      return 'retired';
+    }
     if (res.status === 200) {
       const { payload } = await res.json();
       const local = (await storage.get('sv_cache')).sv_cache;
@@ -59,7 +67,7 @@ async function loadVault(keys) {
 async function openSession(mnemonic) {
   const seed = await C.mnemonicToSeed(mnemonic);
   const keys = await C.deriveKeys(seed);
-  await pull(keys);
+  if (await pull(keys) === 'retired') return;
   const vault = await loadVault(keys);
   session = { keys, vault };
   await storage.sSet({ sv_session: { mnemonic, unlockedAt: Date.now() } });
@@ -173,7 +181,7 @@ $('l-reset').addEventListener('click', async () => {
 
 // ---------- acciones ----------
 $('m-sync').addEventListener('click', async () => {
-  await pull(session.keys);
+  if (await pull(session.keys) === 'retired') return;
   session.vault = await loadVault(session.keys);
   await renderMain();
 });
